@@ -1,0 +1,339 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		131DBE4BBAAD433D97BA87D5 /* AgoraTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A73052939B46278D556316 /* AgoraTheme.swift */; };
+		3B0607BD6B87444A8F669AF0 /* InteractivePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D700D956A164F9BAA62967B /* InteractivePromptView.swift */; };
+		4634D2F94C7E45D7AB4A9C55 /* MockEpisodeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C56CF91ADD446C496ED0F9A /* MockEpisodeProvider.swift */; };
+		4A5DF851BBB14B4697BAC610 /* TheAgoraLAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54182282CA674BE6B6EA8622 /* TheAgoraLAApp.swift */; };
+		4E0B39AA7370450EB15A59A9 /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBF31C3CA5C24E4997ECBC63 /* AudioPlayerManager.swift */; };
+		4E237DFBB1714B55BE02C622 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8860E69FF34DFEB4BEB498 /* ContentView.swift */; };
+		54B5F3632F3871BC0080EA3F /* TranscriptFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B5F3622F3871BC0080EA3F /* TranscriptFetcher.swift */; };
+		54B5F3652F3877570080EA3F /* PlayerDurationCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B5F3642F3877570080EA3F /* PlayerDurationCache.swift */; };
+		54B9E8EE2F389A5F00056907 /* FeedEpisodePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9E8ED2F389A5F00056907 /* FeedEpisodePickerView.swift */; };
+		54B9E8F02F389BE000056907 /* AgoraEpisodeCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9E8EF2F389BE000056907 /* AgoraEpisodeCandidate.swift */; };
+		54B9E8F22F39431400056907 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9E8F12F39431400056907 /* SignInView.swift */; };
+		54B9E8F42F3946A400056907 /* NowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B9E8F32F3946A400056907 /* NowPlayingManager.swift */; };
+		5C8F8E8D55A541109A233038 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCBF56C40C904E97AB0BACF0 /* PlayerViewModel.swift */; };
+		5E02C622FEC140AA8FDF3478 /* AgoraComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 388DCC0A208C439DB2BAA022 /* AgoraComponents.swift */; };
+		6880DB960C50450A81F0297F /* PointsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0F5C07173AF4EAFA730435A /* PointsStore.swift */; };
+		98E73F5324B246FEB7C0D896 /* EpisodeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E03FC50B034441855325F7 /* EpisodeStore.swift */; };
+		A203DAD3BD27422E91B5F212 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66088B3AA6FE4E9D89481445 /* AIService.swift */; };
+		A5028BB863CB4B9B966CD992 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06B0D364C26C4A6DA402C364 /* Models.swift */; };
+		AC1C32DC89FB4EF0A969213C /* SpeechRecognitionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 859D092C00BB428886A503E3 /* SpeechRecognitionManager.swift */; };
+		F07C4CB318F74C69AC4B7489 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F429C6E820141EDA4E468C5 /* PlayerView.swift */; };
+		FCFB3669C58C4B8DA0491E01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAB59ADF251F446BADC09262 /* Assets.xcassets */; };
+		FE2518203AE843559DA3DEAB /* PromptEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C7D58B0A4C04D7F9BDB641B /* PromptEditorView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		06B0D364C26C4A6DA402C364 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		0C56CF91ADD446C496ED0F9A /* MockEpisodeProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockEpisodeProvider.swift; sourceTree = "<group>"; };
+		0D52757C74534546B8BB111F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		388DCC0A208C439DB2BAA022 /* AgoraComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgoraComponents.swift; sourceTree = "<group>"; };
+		3D700D956A164F9BAA62967B /* InteractivePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractivePromptView.swift; sourceTree = "<group>"; };
+		3F8860E69FF34DFEB4BEB498 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		54182282CA674BE6B6EA8622 /* TheAgoraLAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheAgoraLAApp.swift; sourceTree = "<group>"; };
+		54B5F3602F382A310080EA3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		54B5F3622F3871BC0080EA3F /* TranscriptFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptFetcher.swift; sourceTree = "<group>"; };
+		54B5F3642F3877570080EA3F /* PlayerDurationCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDurationCache.swift; sourceTree = "<group>"; };
+		54B9E8ED2F389A5F00056907 /* FeedEpisodePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedEpisodePickerView.swift; sourceTree = "<group>"; };
+		54B9E8EF2F389BE000056907 /* AgoraEpisodeCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgoraEpisodeCandidate.swift; sourceTree = "<group>"; };
+		54B9E8F12F39431400056907 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		54B9E8F32F3946A400056907 /* NowPlayingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingManager.swift; sourceTree = "<group>"; };
+		66088B3AA6FE4E9D89481445 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
+		7E7C02D3E2CD49D387486B09 /* TheAgoraLA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = TheAgoraLA.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		859D092C00BB428886A503E3 /* SpeechRecognitionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionManager.swift; sourceTree = "<group>"; };
+		8C7D58B0A4C04D7F9BDB641B /* PromptEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptEditorView.swift; sourceTree = "<group>"; };
+		9F429C6E820141EDA4E468C5 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		A0F5C07173AF4EAFA730435A /* PointsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsStore.swift; sourceTree = "<group>"; };
+		AAB59ADF251F446BADC09262 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BBF31C3CA5C24E4997ECBC63 /* AudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerManager.swift; sourceTree = "<group>"; };
+		D7A73052939B46278D556316 /* AgoraTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgoraTheme.swift; sourceTree = "<group>"; };
+		D9E03FC50B034441855325F7 /* EpisodeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeStore.swift; sourceTree = "<group>"; };
+		DCBF56C40C904E97AB0BACF0 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E67C21C4A82049828547274E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		17B8BCE48283461EB9BD5B71 = {
+			isa = PBXGroup;
+			children = (
+				AAA180B6519E49E782DD73EA /* Sources */,
+				79EBDDFF622C4796A7BF4FEC /* TheAgoraLA */,
+				883F0EE7366240D68BDE555E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		79EBDDFF622C4796A7BF4FEC /* TheAgoraLA */ = {
+			isa = PBXGroup;
+			children = (
+				AAB59ADF251F446BADC09262 /* Assets.xcassets */,
+				0D52757C74534546B8BB111F /* Info.plist */,
+				54B9E8ED2F389A5F00056907 /* FeedEpisodePickerView.swift */,
+				54B9E8EF2F389BE000056907 /* AgoraEpisodeCandidate.swift */,
+				54B9E8F12F39431400056907 /* SignInView.swift */,
+				54B9E8F32F3946A400056907 /* NowPlayingManager.swift */,
+			);
+			path = TheAgoraLA;
+			sourceTree = "<group>";
+		};
+		883F0EE7366240D68BDE555E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7E7C02D3E2CD49D387486B09 /* TheAgoraLA.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AAA180B6519E49E782DD73EA /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				66088B3AA6FE4E9D89481445 /* AIService.swift */,
+				388DCC0A208C439DB2BAA022 /* AgoraComponents.swift */,
+				D7A73052939B46278D556316 /* AgoraTheme.swift */,
+				BBF31C3CA5C24E4997ECBC63 /* AudioPlayerManager.swift */,
+				3F8860E69FF34DFEB4BEB498 /* ContentView.swift */,
+				D9E03FC50B034441855325F7 /* EpisodeStore.swift */,
+				3D700D956A164F9BAA62967B /* InteractivePromptView.swift */,
+				0C56CF91ADD446C496ED0F9A /* MockEpisodeProvider.swift */,
+				06B0D364C26C4A6DA402C364 /* Models.swift */,
+				9F429C6E820141EDA4E468C5 /* PlayerView.swift */,
+				DCBF56C40C904E97AB0BACF0 /* PlayerViewModel.swift */,
+				A0F5C07173AF4EAFA730435A /* PointsStore.swift */,
+				8C7D58B0A4C04D7F9BDB641B /* PromptEditorView.swift */,
+				859D092C00BB428886A503E3 /* SpeechRecognitionManager.swift */,
+				54182282CA674BE6B6EA8622 /* TheAgoraLAApp.swift */,
+				54B5F3602F382A310080EA3F /* Info.plist */,
+				54B5F3622F3871BC0080EA3F /* TranscriptFetcher.swift */,
+				54B5F3642F3877570080EA3F /* PlayerDurationCache.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B207BC6A97604C29BA48281D /* TheAgoraLA */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0F68DD0DE8AC433E9785C62E /* Build configuration list for PBXNativeTarget "TheAgoraLA" */;
+			buildPhases = (
+				366E206C738543D097E2440B /* Sources */,
+				E67C21C4A82049828547274E /* Frameworks */,
+				51CB6B1100284703927914A7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TheAgoraLA;
+			productName = TheAgoraLA;
+			productReference = 7E7C02D3E2CD49D387486B09 /* TheAgoraLA.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DC5A62A8BF4C40E5BB4EE3D0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1500;
+				ORGANIZATIONNAME = "The Agora LA";
+				TargetAttributes = {
+					B207BC6A97604C29BA48281D = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 21F30268B13449408EACAE38 /* Build configuration list for PBXProject "TheAgoraLA" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 17B8BCE48283461EB9BD5B71;
+			productRefGroup = 883F0EE7366240D68BDE555E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B207BC6A97604C29BA48281D /* TheAgoraLA */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		51CB6B1100284703927914A7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCFB3669C58C4B8DA0491E01 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		366E206C738543D097E2440B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A203DAD3BD27422E91B5F212 /* AIService.swift in Sources */,
+				5E02C622FEC140AA8FDF3478 /* AgoraComponents.swift in Sources */,
+				131DBE4BBAAD433D97BA87D5 /* AgoraTheme.swift in Sources */,
+				4E0B39AA7370450EB15A59A9 /* AudioPlayerManager.swift in Sources */,
+				4E237DFBB1714B55BE02C622 /* ContentView.swift in Sources */,
+				98E73F5324B246FEB7C0D896 /* EpisodeStore.swift in Sources */,
+				3B0607BD6B87444A8F669AF0 /* InteractivePromptView.swift in Sources */,
+				4634D2F94C7E45D7AB4A9C55 /* MockEpisodeProvider.swift in Sources */,
+				A5028BB863CB4B9B966CD992 /* Models.swift in Sources */,
+				F07C4CB318F74C69AC4B7489 /* PlayerView.swift in Sources */,
+				5C8F8E8D55A541109A233038 /* PlayerViewModel.swift in Sources */,
+				6880DB960C50450A81F0297F /* PointsStore.swift in Sources */,
+				54B5F3652F3877570080EA3F /* PlayerDurationCache.swift in Sources */,
+				FE2518203AE843559DA3DEAB /* PromptEditorView.swift in Sources */,
+				54B9E8F22F39431400056907 /* SignInView.swift in Sources */,
+				54B9E8F42F3946A400056907 /* NowPlayingManager.swift in Sources */,
+				54B5F3632F3871BC0080EA3F /* TranscriptFetcher.swift in Sources */,
+				AC1C32DC89FB4EF0A969213C /* SpeechRecognitionManager.swift in Sources */,
+				54B9E8EE2F389A5F00056907 /* FeedEpisodePickerView.swift in Sources */,
+				4A5DF851BBB14B4697BAC610 /* TheAgoraLAApp.swift in Sources */,
+				54B9E8F02F389BE000056907 /* AgoraEpisodeCandidate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1FFD564F20884FA897397F7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		3A1CEFA745FE4D09B6D677B8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = TheAgoraLA/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.theagora.la;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D589E4B8B8424B55A0F91945 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = TheAgoraLA/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.theagora.la;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		EC36B04625634E5FB099AFB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0F68DD0DE8AC433E9785C62E /* Build configuration list for PBXNativeTarget "TheAgoraLA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A1CEFA745FE4D09B6D677B8 /* Debug */,
+				D589E4B8B8424B55A0F91945 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		21F30268B13449408EACAE38 /* Build configuration list for PBXProject "TheAgoraLA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EC36B04625634E5FB099AFB9 /* Debug */,
+				1FFD564F20884FA897397F7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DC5A62A8BF4C40E5BB4EE3D0 /* Project object */;
+}
