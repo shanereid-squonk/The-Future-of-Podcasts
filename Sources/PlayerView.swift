@@ -86,10 +86,16 @@ struct PlayerView: View {
                             .foregroundColor(AgoraTheme.inkMuted)
                     }
 
+                    Toggle("Driving Mode", isOn: $viewModel.drivingModeEnabled)
+                        .font(AgoraTheme.bodyFont)
+                        .foregroundColor(AgoraTheme.ink)
+                        .toggleStyle(SwitchToggleStyle(tint: AgoraTheme.accent))
+
                     Spacer()
 
-                    Toggle("", isOn: $viewModel.interactiveModeEnabled)
-                        .labelsHidden()
+                    Toggle("Interactive Prompts", isOn: $viewModel.interactiveModeEnabled)
+                        .font(AgoraTheme.bodyFont)
+                        .foregroundColor(AgoraTheme.ink)
                         .toggleStyle(SwitchToggleStyle(tint: AgoraTheme.accent))
                 }
             }
@@ -108,6 +114,7 @@ struct PlayerView: View {
         }
         .task {
             _ = await viewModel.speechManager.requestAuthorization()
+            viewModel.bind(pointsStore: pointsStore)
         }
     }
 

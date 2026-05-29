@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import AVFoundation
 
 struct PromptEditorView: View {
     @ObservedObject var episodeStore: EpisodeStore
@@ -15,8 +16,13 @@ struct PromptEditorView: View {
     @State private var isResolving = false
     @State private var isAnalyzingPrompts = false
     @State private var transcriptExpanded = false
+    @State private var selectedPromptCount = 3
+    @State private var showAdditionalPromptsStack = false
 
     var body: some View {
+        let visiblePrompts = Array(episodeStore.episode.prompts.prefix(3))
+        let additionalPrompts = Array(episodeStore.episode.prompts.dropFirst(3))
+
         VStack(spacing: 18) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -159,33 +165,72 @@ struct PromptEditorView: View {
                             }
                         }
 
-                        // 2) Wait for realistic duration and transcript
-                        let deadline = Date().addingTimeInterval(15)
-                        var duration = await PlayerDurationProvider.shared.currentDuration
-                        while duration < 10 && Date() < deadline {
-                            try? await Task.sleep(nanoseconds: 300_000_000)
-                            duration = await PlayerDurationProvider.shared.currentDuration
+                        // 2) Measure real media duration first, then fall back to player cache.
+                        var duration = await measureAudioDurationSeconds(from: episodeStore.episode.audioURL)
+                        if let measured = duration {
+                            await MainActor.run { PlayerDurationCache.shared.duration = measured }
+                        } else {
+                            let durationDeadline = Date().addingTimeInterval(20)
+                            var cached = await PlayerDurationProvider.shared.currentDuration
+                            while cached < 10 && Date() < durationDeadline {
+                                try? await Task.sleep(nanoseconds: 300_000_000)
+                                cached = await PlayerDurationProvider.shared.currentDuration
+                            }
+                            if cached > 10 {
+                                duration = cached
+                            }
                         }
+                        var effectiveDuration = duration
 
+                        // 3) Wait for transcript
+                        let transcriptDeadline = Date().addingTimeInterval(20)
                         var text = episodeStore.episode.transcript ?? transcriptText
-                        while text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && Date() < deadline {
+                        while text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && Date() < transcriptDeadline {
                             try? await Task.sleep(nanoseconds: 300_000_000)
                             text = episodeStore.episode.transcript ?? transcriptText
                         }
 
                         // Require transcript for content-aware prompt placement
-                        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+                        let trimmedTranscript = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmedTranscript.isEmpty else { return }
 
-                        // 3) Generate prompts (Beginning/Middle/End)
-                        let generated = await AIService().generatePrompts(transcript: text, audioDuration: duration, desiredCount: 3)
+                        if effectiveDuration == nil || !(effectiveDuration!.isFinite) || effectiveDuration! <= 10 {
+                            effectiveDuration = estimateDurationFromTranscript(trimmedTranscript)
+                        }
+                        guard let effectiveDuration, effectiveDuration > 10 else { return }
+
+                        // 4) Generate transcript-aware prompts from the dedicated AI worker.
+                        let requestedCount = max(3, min(9, selectedPromptCount))
+                        let generated = await generatePrompts(
+                            transcript: trimmedTranscript,
+                            audioDuration: effectiveDuration,
+                            requestedCount: requestedCount
+                        )
+                        guard !generated.isEmpty else { return }
                         await MainActor.run { episodeStore.replacePrompts(generated) }
                     }
                 }
                 .buttonStyle(AgoraPillButtonStyle())
                 .disabled(isResolving || isAnalyzingPrompts)
 
+                Menu {
+                    ForEach(3...9, id: \.self) { count in
+                        Button("\(count) prompts") {
+                            selectedPromptCount = count
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("Prompt Count")
+                        Text("\(selectedPromptCount)")
+                            .fontWeight(.semibold)
+                    }
+                }
+                .buttonStyle(AgoraOutlineButtonStyle())
+                .disabled(isAnalyzingPrompts)
+
                 if isAnalyzingPrompts {
-                    ProgressView("Analyzing podcast to generate prompts...")
+                    ProgressView("Analyzing podcast to generate \(selectedPromptCount) prompts...")
                         .font(AgoraTheme.tagFont)
                         .foregroundColor(AgoraTheme.inkMuted)
                 }
@@ -196,12 +241,32 @@ struct PromptEditorView: View {
                 .foregroundColor(AgoraTheme.ink)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            ForEach(Array(episodeStore.episode.prompts.enumerated()), id: \.element.id) { index, prompt in
-                PromptRow(index: index, prompt: prompt) {
+            ForEach(Array(visiblePrompts.enumerated()), id: \.element.id) { index, prompt in
+                PromptRow(index: index, prompt: prompt, episodeDuration: promptEditorDurationSeconds) {
                     episodeStore.deletePrompt(prompt)
                 } onUpdate: { updated in
                     episodeStore.updatePrompt(updated)
                 }
+            }
+
+            if !additionalPrompts.isEmpty {
+                Button(showAdditionalPromptsStack ? "Hide additional prompts" : "See additional prompts generated") {
+                    showAdditionalPromptsStack.toggle()
+                }
+                .buttonStyle(AgoraOutlineButtonStyle())
+            }
+
+            if showAdditionalPromptsStack, !additionalPrompts.isEmpty {
+                AdditionalPromptsCarousel(
+                    prompts: additionalPrompts,
+                    startIndex: visiblePrompts.count,
+                    episodeDuration: promptEditorDurationSeconds
+                ) { prompt in
+                    episodeStore.deletePrompt(prompt)
+                } onUpdate: { updated in
+                    episodeStore.updatePrompt(updated)
+                }
+                .frame(height: 640)
             }
 
             AgoraCard {
@@ -260,6 +325,217 @@ struct PromptEditorView: View {
         }
     }
 
+    private func generatePrompts(transcript: String, audioDuration: Double, requestedCount: Int) async -> [Prompt] {
+        let boundedCount = max(3, min(9, requestedCount))
+        let primaryService = AIService()
+        let generated = await primaryService.generatePrompts(
+            transcript: transcript,
+            audioDuration: audioDuration,
+            desiredCount: boundedCount
+        )
+        return Array(generated.sorted { $0.timestampSeconds < $1.timestampSeconds }.prefix(boundedCount))
+    }
+
+    private func paddedPromptSet(from prompts: [Prompt], transcript: String, audioDuration: Double, targetCount: Int) -> [Prompt] {
+        var result = prompts
+        let duration = max(audioDuration, 60)
+        let startPad = min(45, max(8, duration * 0.08))
+        let endPad = min(30, max(6, duration * 0.06))
+        let usableStart = min(startPad, duration)
+        let usableEnd = max(usableStart, duration - endPad)
+        let span = max(usableEnd - usableStart, 1)
+
+        let sentences = transcript
+            .components(separatedBy: CharacterSet(charactersIn: ".!?"))
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        var usedQuestionKeys = Set(result.map { normalizedPromptKey($0.question) })
+        var usedAnswerKeys = Set(result.map { normalizedPromptKey($0.expectedAnswer) })
+
+        while result.count < targetCount {
+            let slot = result.count
+            let ratio = Double(slot + 1) / Double(targetCount + 1)
+            let timestamp = usableStart + (ratio * span)
+
+            let sentenceIndex = min(Int(round(ratio * Double(max(sentences.count - 1, 0)))), max(sentences.count - 1, 0))
+            let answerSeed: String = sentences.isEmpty
+                ? "In this segment, the speaker presents a concrete argument with implications for the broader discussion."
+                : sentences[sentenceIndex]
+
+            let answer = answerSeed.hasSuffix(".") ? answerSeed : (answerSeed + ".")
+            let question = fallbackQuestion(
+                for: answer,
+                slot: slot,
+                totalSlots: targetCount,
+                usedQuestionKeys: &usedQuestionKeys
+            )
+
+            let aKey = normalizedPromptKey(answer)
+            if usedAnswerKeys.contains(aKey) {
+                let fallbackAnswer = "\(answer) Segment \(slot + 1)."
+                let fallbackQuestion = fallbackQuestion(
+                    for: fallbackAnswer,
+                    slot: slot,
+                    totalSlots: targetCount,
+                    usedQuestionKeys: &usedQuestionKeys
+                )
+                result.append(
+                    Prompt(
+                        id: UUID(),
+                        timestampSeconds: timestamp,
+                        question: fallbackQuestion,
+                        expectedAnswer: fallbackAnswer,
+                        leadTimeSeconds: 0
+                    )
+                )
+                usedQuestionKeys.insert(normalizedPromptKey(fallbackQuestion))
+                usedAnswerKeys.insert(normalizedPromptKey(fallbackAnswer))
+                continue
+            }
+
+            result.append(
+                Prompt(
+                    id: UUID(),
+                    timestampSeconds: timestamp,
+                    question: question,
+                    expectedAnswer: answer,
+                    leadTimeSeconds: 0
+                )
+            )
+            usedAnswerKeys.insert(aKey)
+        }
+
+        return result
+    }
+
+    private func fallbackQuestion(
+        for answer: String,
+        slot: Int,
+        totalSlots: Int,
+        usedQuestionKeys: inout Set<String>
+    ) -> String {
+        let anchor = fallbackAnchor(from: answer)
+        let secondary = fallbackSecondaryTopic(from: answer, excluding: anchor)
+        let detail = fallbackDetail(from: answer)
+
+        var candidates: [String] = []
+        if slot <= 0 {
+            candidates = [
+                "What assumption is doing the most work in this part of the episode's claim about \(anchor)?",
+                "Why does the speaker open this stretch by emphasizing \(anchor)?",
+                "Which detail here gives the argument about \(anchor) its initial force?"
+            ]
+        } else if slot >= totalSlots - 1 {
+            candidates = [
+                "If the claim about \(anchor) holds, what should listeners change after hearing this section?",
+                "What consequence tied to \(anchor) does this closing segment make hardest to ignore?",
+                "What unresolved issue about \(anchor) remains after this point?"
+            ]
+        } else {
+            candidates = [
+                "What tension around \(anchor) is this section exposing, and how is it addressed?",
+                "Which evidence in this segment most strengthens or weakens the claim about \(anchor)?",
+                "How does this part connect \(anchor) to the episode's broader point about \(secondary)?"
+            ]
+        }
+
+        if let detail {
+            candidates.append("How should listeners interpret the detail \"\(detail)\" before accepting the argument about \(anchor)?")
+        }
+        candidates.append("What reason in this section most strongly supports the claim about \(anchor), and what still needs proof?")
+
+        for candidate in candidates {
+            let cleaned = normalizedQuestion(candidate)
+            let key = normalizedPromptKey(cleaned)
+            if usedQuestionKeys.insert(key).inserted {
+                return cleaned
+            }
+        }
+
+        let fallback = normalizedQuestion("Which part of the argument about \(anchor) should listeners test most carefully?")
+        usedQuestionKeys.insert(normalizedPromptKey(fallback))
+        return fallback
+    }
+
+    private func fallbackAnchor(from text: String) -> String {
+        let cleaned = text
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleaned.isEmpty else { return "this claim" }
+
+        let seed = cleaned.components(separatedBy: CharacterSet(charactersIn: ".!?")).first ?? cleaned
+        var words = seed.split(separator: " ").map {
+            $0.trimmingCharacters(in: .punctuationCharacters)
+        }.filter { !$0.isEmpty }
+        let stop = Set([
+            "the", "a", "an", "this", "that", "these", "those", "and", "but", "or",
+            "so", "then", "because", "however", "well", "also"
+        ])
+        while let first = words.first, stop.contains(first.lowercased()), words.count > 2 {
+            words.removeFirst()
+        }
+        while let last = words.last, stop.contains(last.lowercased()), words.count > 2 {
+            words.removeLast()
+        }
+        let phrase = words.prefix(7).joined(separator: " ")
+        return phrase.isEmpty ? "this claim" : phrase
+    }
+
+    private func fallbackSecondaryTopic(from text: String, excluding anchor: String) -> String {
+        let anchorKey = normalizedPromptKey(anchor)
+        let words = text.lowercased()
+            .split(whereSeparator: { $0.isWhitespace || $0.isNewline || $0.isPunctuation })
+            .map(String.init)
+        let stop = Set([
+            "about", "after", "again", "because", "episode", "podcast", "segment",
+            "section", "speaker", "there", "their", "these", "those", "this", "that",
+            "what", "when", "where", "which", "while", "with", "would"
+        ])
+        for word in words where word.count >= 5 && !stop.contains(word) {
+            let key = normalizedPromptKey(word)
+            if !key.isEmpty && !anchorKey.contains(key) {
+                return word
+            }
+        }
+        return "the broader argument"
+    }
+
+    private func fallbackDetail(from text: String) -> String? {
+        if let quotedRange = text.range(of: "\"([^\"]{4,80})\"", options: .regularExpression) {
+            let detail = String(text[quotedRange])
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !detail.isEmpty { return detail }
+        }
+        if let numericRange = text.range(
+            of: "\\b(?:[A-Za-z]+\\s+){0,2}\\d+(?:\\.\\d+)?%?(?:\\s+[A-Za-z]+){0,3}\\b",
+            options: .regularExpression
+        ) {
+            let detail = String(text[numericRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !detail.isEmpty { return detail }
+        }
+        return nil
+    }
+
+    private func normalizedQuestion(_ text: String) -> String {
+        var cleaned = text
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        cleaned = cleaned.prefix(1).uppercased() + cleaned.dropFirst()
+        if !cleaned.hasSuffix("?") {
+            cleaned.append("?")
+        }
+        return cleaned
+    }
+
+    private func normalizedPromptKey(_ text: String) -> String {
+        text.lowercased()
+            .replacingOccurrences(of: "[^a-z0-9 ]", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private func saveEpisodeDetails() {
         let input = audioURLText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard input.lowercased().hasPrefix("https://") else {
@@ -297,9 +573,6 @@ struct PromptEditorView: View {
                     // Wait briefly for the player to prepare (duration reported)
                     await waitForPlayerPreparation(timeoutSeconds: 5)
 
-                    // Dismiss only after the player is ready
-                    self.dismiss()
-
                     // Background auto-fetch transcript if still missing
                     Task {
                         if episodeStore.episode.transcript == nil || (episodeStore.episode.transcript?.isEmpty == true) {
@@ -329,8 +602,6 @@ struct PromptEditorView: View {
 
             // Wait briefly for the player to prepare (duration reported)
             await waitForPlayerPreparation(timeoutSeconds: 5)
-
-            dismiss()
         }
     }
 
@@ -343,6 +614,39 @@ struct PromptEditorView: View {
             }
             try? await Task.sleep(nanoseconds: 200_000_000)
         }
+    }
+
+    private func measureAudioDurationSeconds(from url: URL) async -> Double? {
+        await withTaskGroup(of: Double?.self, returning: Double?.self) { group in
+            group.addTask {
+                let asset = AVURLAsset(url: url)
+                do {
+                    let duration = try await asset.load(.duration)
+                    let seconds = duration.seconds
+                    guard seconds.isFinite, seconds > 10 else { return nil }
+                    return seconds
+                } catch {
+                    return nil
+                }
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 20_000_000_000)
+                return nil
+            }
+
+            let measured = await group.next() ?? nil
+            group.cancelAll()
+            return measured
+        }
+    }
+
+    private func estimateDurationFromTranscript(_ transcript: String) -> Double {
+        let words = transcript.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
+        if words == 0 { return 0 }
+        // 2.6 words/sec ~= 156 wpm typical spoken pace.
+        let estimated = Double(words) / 2.6
+        return max(180, min(86_400, estimated))
     }
 
     private func addPrompt() {
@@ -364,11 +668,17 @@ struct PromptEditorView: View {
         newAnswer = ""
         newLeadTime = 0
     }
+
+    private var promptEditorDurationSeconds: Double {
+        let maxPrompt = episodeStore.episode.prompts.map(\.timestampSeconds).max() ?? 0
+        return max(PlayerDurationCache.shared.duration, maxPrompt + 60, 600)
+    }
 }
 
 private struct PromptRow: View {
     let index: Int
     let prompt: Prompt
+    let episodeDuration: Double
     let onDelete: () -> Void
     let onUpdate: (Prompt) -> Void
 
@@ -376,10 +686,13 @@ private struct PromptRow: View {
     @State private var expectedAnswer: String
     @State private var timestampSeconds: Double
     @State private var leadTimeSeconds: Double
+    @State private var showFullQuestion = false
+    @State private var showFullAnswer = false
 
-    init(index: Int, prompt: Prompt, onDelete: @escaping () -> Void, onUpdate: @escaping (Prompt) -> Void) {
+    init(index: Int, prompt: Prompt, episodeDuration: Double, onDelete: @escaping () -> Void, onUpdate: @escaping (Prompt) -> Void) {
         self.index = index
         self.prompt = prompt
+        self.episodeDuration = episodeDuration
         self.onDelete = onDelete
         self.onUpdate = onUpdate
         _question = State(initialValue: prompt.question)
@@ -392,7 +705,7 @@ private struct PromptRow: View {
         AgoraCard {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("Time: \(String(format: "%.0f", timestampSeconds))s")
+                    Text("Time: \(formatSeconds(timestampSeconds))")
                         .font(AgoraTheme.tagFont)
                         .foregroundColor(AgoraTheme.inkMuted)
 
@@ -442,11 +755,51 @@ private struct PromptRow: View {
                     Slider(value: $leadTimeSeconds, in: 0...60, step: 5)
                 }
 
-                TextField("Question", text: $question)
-                    .agoraFieldStyle()
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Question")
+                        .font(AgoraTheme.tagFont)
+                        .foregroundColor(AgoraTheme.inkMuted)
 
-                TextField("Expected answer", text: $expectedAnswer)
-                    .agoraFieldStyle()
+                    if showFullQuestion {
+                        TextEditor(text: $question)
+                            .frame(height: 130)
+                            .agoraFieldStyle()
+                    } else {
+                        TextField("Question", text: $question)
+                            .agoraFieldStyle()
+                    }
+
+                    HStack {
+                        Spacer()
+                        Button(showFullQuestion ? "Show less" : "Show more") {
+                            showFullQuestion.toggle()
+                        }
+                        .buttonStyle(AgoraOutlineButtonStyle())
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Expected Answer")
+                        .font(AgoraTheme.tagFont)
+                        .foregroundColor(AgoraTheme.inkMuted)
+
+                    if showFullAnswer {
+                        TextEditor(text: $expectedAnswer)
+                            .frame(height: 130)
+                            .agoraFieldStyle()
+                    } else {
+                        TextField("Expected answer", text: $expectedAnswer)
+                            .agoraFieldStyle()
+                    }
+
+                    HStack {
+                        Spacer()
+                        Button(showFullAnswer ? "Show less" : "Show more") {
+                            showFullAnswer.toggle()
+                        }
+                        .buttonStyle(AgoraOutlineButtonStyle())
+                    }
+                }
 
                 Button("Save Prompt") {
                     let updated = Prompt(
@@ -473,37 +826,96 @@ private struct PromptRow: View {
     }
 
     private var timestampRange: ClosedRange<Double> {
+        let duration = max(episodeDuration, 60)
+        let startPad = min(45, max(8, duration * 0.08))
+        let endPad = min(30, max(6, duration * 0.06))
+        let usableStart = min(startPad, duration)
+        let usableEnd = max(usableStart, duration - endPad)
+        let segment = max((usableEnd - usableStart) / 3, 1)
+
+        let firstEnd = min(usableEnd, usableStart + segment)
+        let secondStart = firstEnd
+        let secondEnd = min(usableEnd, usableStart + (2 * segment))
+        let thirdStart = secondEnd
+
         switch index {
-        case 0: return 0...30 // 0-30s
-        case 1: return 60...120 // 1-2 minutes
-        case 2: return 150...3600 // 2:30 to 60 minutes (practical upper bound)
-        default: return 0...3600
+        case 0: return usableStart...firstEnd
+        case 1: return secondStart...secondEnd
+        case 2: return thirdStart...usableEnd
+        default: return usableStart...usableEnd
         }
     }
 
     private var timestampStep: Double {
-        switch index {
-        case 0, 1: return 5
-        case 2: return 10
-        default: return 5
-        }
+        let duration = max(episodeDuration, 1)
+        if duration >= 10_800 { return 60 } // 3h+
+        if duration >= 3_600 { return 30 }  // 1h+
+        if duration >= 1_200 { return 15 }  // 20m+
+        return 5
     }
 
     private var quickSelectTimestamps: [Double] {
-        switch index {
-        case 0: return [0, 5, 10, 15, 20, 25, 30]
-        case 1: return [60, 75, 90, 105, 120]
-        case 2: return [150, 180, 210, 240, 300, 600, 900]
-        default: return [30, 60, 90]
+        let r = timestampRange
+        let span = r.upperBound - r.lowerBound
+        guard span > 1 else { return [r.lowerBound] }
+        let step = span / 4
+        return (0...4).map { i in
+            r.lowerBound + (Double(i) * step)
         }
     }
 
     private func formatSeconds(_ seconds: Double) -> String {
         let s = Int(seconds)
-        let m = s / 60
+        let h = s / 3600
+        let minutes = (s % 3600) / 60
         let r = s % 60
-        if m > 0 { return String(format: "%d:%02d", m, r) }
+        if h > 0 { return String(format: "%d:%02d:%02d", h, minutes, r) }
+        let shortMinutes = s / 60
+        if shortMinutes > 0 { return String(format: "%d:%02d", shortMinutes, r) }
         return "\(s)s"
+    }
+}
+
+private struct AdditionalPromptsCarousel: View {
+    let prompts: [Prompt]
+    let startIndex: Int
+    let episodeDuration: Double
+    let onDelete: (Prompt) -> Void
+    let onUpdate: (Prompt) -> Void
+
+    @State private var selection = 0
+
+    var body: some View {
+        AgoraCard {
+            VStack(spacing: 12) {
+                if prompts.isEmpty {
+                    Text("No additional prompts available.")
+                        .font(AgoraTheme.bodyFont)
+                        .foregroundColor(AgoraTheme.inkMuted)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    TabView(selection: $selection) {
+                        ForEach(Array(prompts.enumerated()), id: \.element.id) { offset, prompt in
+                            PromptRow(
+                                index: startIndex + offset,
+                                prompt: prompt,
+                                episodeDuration: episodeDuration
+                            ) {
+                                onDelete(prompt)
+                            } onUpdate: { updated in
+                                onUpdate(updated)
+                            }
+                            .tag(offset)
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 12)
+                        }
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .always))
+                    .indexViewStyle(.page(backgroundDisplayMode: .always))
+                }
+            }
+            .padding(10)
+        }
     }
 }
 
@@ -625,6 +1037,11 @@ private struct PodcastLinkResolver {
             }
         }
 
+        // 3) Fallback for show-level links: use the latest episode with an enclosure.
+        if let url = items.first(where: { $0.enclosure != nil })?.enclosure {
+            return url
+        }
+
         throw ResolverError.enclosureNotFound
     }
 
@@ -671,4 +1088,3 @@ private actor PlayerDurationProvider {
         return  max(PlayerDurationCache.shared.duration, 1)
     }
 }
-
