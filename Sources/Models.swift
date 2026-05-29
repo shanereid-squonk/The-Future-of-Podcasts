@@ -1,5 +1,31 @@
 import Foundation
 
+enum PromptGrade: String, Codable {
+    case a = "A"
+    case b = "B"
+    case c = "C"
+    case f = "F"
+
+    var pointsAwarded: Int {
+        switch self {
+        case .a: return 10
+        case .b: return 8
+        case .c: return 6
+        case .f: return 0
+        }
+    }
+
+    static func from(score: Int) -> PromptGrade {
+        let bounded = min(max(score, 0), 100)
+        switch bounded {
+        case 85...100: return .a
+        case 60..<85: return .b
+        case 30..<60: return .c
+        default: return .f
+        }
+    }
+}
+
 struct Episode: Identifiable, Codable {
     let id: UUID
     let title: String
@@ -91,5 +117,7 @@ struct PromptResult: Identifiable {
     let prompt: Prompt
     let answer: String
     let score: Int
+    let grade: PromptGrade
+    let awardedPoints: Int
     let feedback: String
 }

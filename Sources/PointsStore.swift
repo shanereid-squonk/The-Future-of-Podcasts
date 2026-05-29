@@ -30,6 +30,15 @@ final class PointsStore: ObservableObject {
         UserDefaults.standard.set(totalPoints, forKey: storageKey)
     }
 
+    @discardableResult
+    func redeem(points: Int) -> Bool {
+        guard points > 0, isEnabled else { return false }
+        guard totalPoints >= points else { return false }
+        totalPoints -= points
+        UserDefaults.standard.set(totalPoints, forKey: storageKey)
+        return true
+    }
+
     func reset() {
         totalPoints = 0
         UserDefaults.standard.set(0, forKey: storageKey)

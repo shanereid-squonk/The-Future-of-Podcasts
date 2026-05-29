@@ -40,16 +40,38 @@ struct InteractivePromptView: View {
                         )
                 }
 
-                HStack(spacing: 12) {
-                    Button(viewModel.speechManager.isRecording ? "Stop" : "Speak") {
-                        viewModel.toggleRecording()
-                    }
-                    .buttonStyle(AgoraOutlineButtonStyle())
+                if viewModel.drivingModeEnabled {
+                    VStack(spacing: 10) {
+                        if !viewModel.drivingStatusText.isEmpty {
+                            Text(viewModel.drivingStatusText)
+                                .font(AgoraTheme.tagFont)
+                                .foregroundColor(AgoraTheme.inkMuted)
+                        }
 
-                    Button("Use Transcript") {
-                        viewModel.answerText = viewModel.speechManager.transcript
+                        Button {
+                            viewModel.drivingMicTapped()
+                        } label: {
+                            Image(systemName: viewModel.speechManager.isRecording ? "stop.fill" : "mic.fill")
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundColor(AgoraTheme.inkOnAccent)
+                                .frame(width: 110, height: 110)
+                                .background(Circle().fill(AgoraTheme.accentGradient))
+                                .shadow(color: AgoraTheme.shadow, radius: 10, x: 0, y: 6)
+                        }
+                        .accessibilityLabel(viewModel.speechManager.isRecording ? "Stop recording" : "Start recording")
                     }
-                    .buttonStyle(AgoraOutlineButtonStyle())
+                } else {
+                    HStack(spacing: 12) {
+                        Button(viewModel.speechManager.isRecording ? "Stop" : "Speak") {
+                            viewModel.toggleRecording()
+                        }
+                        .buttonStyle(AgoraOutlineButtonStyle())
+
+                        Button("Use Transcript") {
+                            viewModel.answerText = viewModel.speechManager.transcript
+                        }
+                        .buttonStyle(AgoraOutlineButtonStyle())
+                    }
                 }
 
                 if viewModel.isEvaluating {
@@ -71,6 +93,16 @@ struct InteractivePromptView: View {
                                 .foregroundColor(AgoraTheme.ink)
                         }
 
+                        HStack {
+                            Text("Grade \(viewModel.lastGrade.rawValue)")
+                                .font(AgoraTheme.tagFont)
+                                .foregroundColor(AgoraTheme.inkMuted)
+                            Spacer()
+                            Text("+\(viewModel.lastAwardedPoints) Agora Points")
+                                .font(AgoraTheme.tagFont)
+                                .foregroundColor(AgoraTheme.inkMuted)
+                        }
+
                         Text(viewModel.feedbackText)
                             .font(AgoraTheme.bodyFont)
                             .foregroundColor(AgoraTheme.inkMuted)
@@ -85,6 +117,7 @@ struct InteractivePromptView: View {
                         }
                     }
                     .buttonStyle(AgoraPillButtonStyle())
+                    .disabled(viewModel.drivingModeEnabled)
 
                     Button("Continue") {
                         viewModel.continuePlayback()

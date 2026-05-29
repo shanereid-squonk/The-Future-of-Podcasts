@@ -47,6 +47,9 @@ final class SpeechRecognitionManager: ObservableObject {
         }
 
         do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.duckOthers, .defaultToSpeaker, .allowBluetoothHFP])
+            try session.setActive(true, options: [])
             try audioEngine.start()
             isRecording = true
         } catch {
@@ -62,5 +65,8 @@ final class SpeechRecognitionManager: ObservableObject {
         recognitionTask = nil
         request = nil
         isRecording = false
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        } catch {}
     }
 }
